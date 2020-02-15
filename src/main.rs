@@ -6,11 +6,15 @@ extern crate nrf51_hal;
 mod display;
 
 use core::panic::PanicInfo;
+use core::time::Duration;
 use cortex_m_rt::entry;
 use display::Display;
+use nb::block;
 use nrf51_hal::delay::Delay;
-use nrf51_hal::nrf51::Peripherals;
+use nrf51_hal::lo_res_timer::FREQ_8HZ;
+use nrf51_hal::nrf51::*;
 use nrf51_hal::prelude::*;
+use nrf51_hal::timer::CountDownRtc;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -41,6 +45,17 @@ fn main() -> ! {
     );
 
     let mut delay = Delay::new(peripherals.TIMER0);
+
+    peripherals
+        .CLOCK
+        .tasks_lfclkstart
+        .write(|w| unsafe { w.bits(1) });
+    while peripherals.CLOCK.events_lfclkstarted.read().bits() == 0 {}
+    peripherals.CLOCK.events_lfclkstarted.reset();
+
+    let mut countdown = CountDownRtc::new(peripherals.RTC0, FREQ_8HZ);
+    countdown.start(Duration::new(10, 0));
+    block!(countdown.wait()).unwrap();
 
     loop {
         display.display(
