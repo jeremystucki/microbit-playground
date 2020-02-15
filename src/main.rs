@@ -3,30 +3,56 @@
 
 extern crate nrf51_hal;
 
+mod display;
+
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
-use nrf51_hal::gpio::gpio::*;
-use nrf51_hal::prelude::*;
+use display::Display;
+use nrf51_hal::delay::Delay;
+use nrf51_hal::gpio::gpio::Parts;
 use nrf51_hal::nrf51::Peripherals;
-use nrf51_hal::gpio::{Output, Floating, PushPull};
+use nrf51_hal::prelude::*;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop { }
+    loop {}
 }
 
 #[entry]
 fn main() -> ! {
-    // CLion can't infer certain types, so I added type hints
-
     let peripherals = Peripherals::take().unwrap();
-    let gpio: Parts = peripherals.GPIO.split();
+    let gpio = peripherals.GPIO.split();
 
-    let mut pin4: PIN4<Output<PushPull>> = gpio.pin4.into_push_pull_output();
-    let mut pin13: PIN13<Output<PushPull>> = gpio.pin13.into_push_pull_output();
+    let row1 = gpio.pin4.into_push_pull_output();
+    let row2 = gpio.pin5.into_push_pull_output();
+    let row3 = gpio.pin6.into_push_pull_output();
+    let row4 = gpio.pin7.into_push_pull_output();
+    let row5 = gpio.pin8.into_push_pull_output();
+    let row6 = gpio.pin9.into_push_pull_output();
+    let row7 = gpio.pin10.into_push_pull_output();
+    let row8 = gpio.pin11.into_push_pull_output();
+    let row9 = gpio.pin12.into_push_pull_output();
 
-    pin4.set_low();
-    pin13.set_high();
+    let col1 = gpio.pin13.into_push_pull_output();
+    let col2 = gpio.pin14.into_push_pull_output();
+    let col3 = gpio.pin15.into_push_pull_output();
 
-    loop { }
+    let mut display = Display::new(
+        row1, row2, row3, row4, row5, row6, row7, row8, row9, col1, col2, col3,
+    );
+
+    let mut delay = Delay::new(peripherals.TIMER0);
+
+    loop {
+        display.display(
+            &mut delay,
+            [
+                [0, 1, 0, 1, 0],
+                [1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1],
+                [0, 1, 1, 1, 0],
+                [0, 0, 1, 0, 0],
+            ],
+        );
+    }
 }
