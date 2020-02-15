@@ -1,0 +1,9 @@
+[package]
+name = "microbit-playground"
+version = "0.1.0"
+authors = ["Jeremy Stucki <dev@jeremystucki.ch>"]
+edition = "2018"
+
+[dependencies]
+cortex-m-rt = "0.6"
+nrf51-hal = "0.7"
