@@ -9,7 +9,6 @@ use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use display::Display;
 use nrf51_hal::delay::Delay;
-use nrf51_hal::gpio::gpio::Parts;
 use nrf51_hal::nrf51::Peripherals;
 use nrf51_hal::prelude::*;
 
