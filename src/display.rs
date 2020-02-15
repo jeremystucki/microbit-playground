@@ -56,7 +56,11 @@ impl Display {
 
             delay.delay_ms(5_u8);
 
-            self.rows.iter_mut().for_each(|row| row.set_high().unwrap());
+            self.rows
+                .iter_mut()
+                .map(LED::set_high)
+                .for_each(Result::unwrap);
+
             column_pin.set_low().unwrap();
         }
     }
