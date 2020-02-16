@@ -7,7 +7,7 @@ mod display;
 
 use bare_metal::Mutex;
 use core::cell::RefCell;
-use core::ops::DerefMut;
+use core::ops::{Deref, DerefMut};
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use display::Display;
@@ -22,6 +22,7 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
+static COUNTER: Mutex<RefCell<u8>> = Mutex::new(RefCell::new(0));
 
 #[entry]
 fn main() -> ! {
@@ -68,22 +69,41 @@ fn main() -> ! {
     unsafe { NVIC::unmask(Interrupt::RTC0) }
 
     loop {
-        display.display(
-            &mut delay,
+        let counter = cortex_m::interrupt::free(|cs| *COUNTER.borrow(cs).borrow().deref());
+
+        let frame = if counter > 5 {
             [
                 [0, 1, 0, 1, 0],
                 [1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1],
                 [0, 1, 1, 1, 0],
                 [0, 0, 1, 0, 0],
-            ],
-        );
+            ]
+        } else {
+            [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+            ]
+        };
+
+        display.display(&mut delay, frame);
     }
 }
 
 #[interrupt]
 fn RTC0() {
     cortex_m::interrupt::free(|cs| {
+        let mut counter = COUNTER.borrow(cs).borrow_mut();
+
+        if *counter > 10 {
+            *counter = 0;
+        } else {
+            *counter += 1;
+        }
+
         if let Some(rtc) = RTC.borrow(cs).borrow_mut().deref_mut() {
             rtc.clear_tick_event();
         }
