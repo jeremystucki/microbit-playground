@@ -5,6 +5,9 @@ extern crate nrf51_hal;
 
 mod display;
 
+use bare_metal::Mutex;
+use core::cell::RefCell;
+use core::ops::DerefMut;
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use display::Display;
@@ -17,6 +20,8 @@ use nrf51_hal::prelude::*;
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
+
+static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
 
 #[entry]
 fn main() -> ! {
@@ -56,6 +61,10 @@ fn main() -> ! {
     rtc0.enable_tick_interrupt();
     rtc0.start();
 
+    cortex_m::interrupt::free(|cs| {
+        *RTC.borrow(cs).borrow_mut() = Some(rtc0);
+    });
+
     unsafe { NVIC::unmask(Interrupt::RTC0) }
 
     loop {
@@ -74,5 +83,9 @@ fn main() -> ! {
 
 #[interrupt]
 fn RTC0() {
-    loop {}
+    cortex_m::interrupt::free(|cs| {
+        if let Some(rtc) = RTC.borrow(cs).borrow_mut().deref_mut() {
+            rtc.clear_tick_event();
+        }
+    });
 }
