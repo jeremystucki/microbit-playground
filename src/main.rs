@@ -11,6 +11,7 @@ use core::ops::{Deref, DerefMut};
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use display::Display;
+use heapless::consts::U10;
 use heapless::Vec;
 use nrf51_hal::delay::Delay;
 use nrf51_hal::lo_res_timer::{LoResTimer, FREQ_16HZ};
@@ -33,9 +34,7 @@ static ZERO_FRAME: [[u8; 5]; 5] = [
 static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
 static COUNTER: Mutex<RefCell<u8>> = Mutex::new(RefCell::new(0));
 
-static CONTENT_TO_DISPLAY: Mutex<RefCell<FixedVec<[u8; 5]>>> = Mutex::new(RefCell::new(
-    FixedVec::new(&mut alloc_stack!([[u8; 5]; 10])),
-));
+static CONTENT_TO_DISPLAY: Mutex<RefCell<Vec<[u8; 5], U10>>> = Mutex::new(RefCell::new(Vec::new()));
 static CURRENT_INDEX: Mutex<RefCell<usize>> = Mutex::new(RefCell::new(0));
 static CURRENT_FRAME: Mutex<RefCell<[[u8; 5]; 5]>> = Mutex::new(RefCell::new(ZERO_FRAME));
 
