@@ -1,12 +1,17 @@
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
 
+extern crate alloc;
 extern crate nrf51_hal;
 
 mod display;
 
-use bare_metal::Mutex;
-use core::cell::RefCell;
+use alloc::vec::Vec;
+use alloc_cortex_m::CortexMHeap;
+use bare_metal::{CriticalSection, Mutex};
+use core::alloc::Layout;
+use core::cell::{RefCell, RefMut};
 use core::ops::{Deref, DerefMut};
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
@@ -16,13 +21,33 @@ use nrf51_hal::lo_res_timer::{LoResTimer, FREQ_16HZ};
 use nrf51_hal::nrf51::*;
 use nrf51_hal::prelude::*;
 
+#[global_allocator]
+static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+
+#[alloc_error_handler]
+fn on_oom(_layout: Layout) -> ! {
+    loop {}
+}
+
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
+static ZERO_FRAME: [[u8; 5]; 5] = [
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+];
+
 static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
 static COUNTER: Mutex<RefCell<u8>> = Mutex::new(RefCell::new(0));
+
+static CONTENT_TO_DISPLAY: Mutex<RefCell<Vec<[u8; 5]>>> = Mutex::new(RefCell::new(Vec::new()));
+static CURRENT_INDEX: Mutex<RefCell<usize>> = Mutex::new(RefCell::new(0));
+static CURRENT_FRAME: Mutex<RefCell<[[u8; 5]; 5]>> = Mutex::new(RefCell::new(ZERO_FRAME));
 
 #[entry]
 fn main() -> ! {
@@ -62,32 +87,19 @@ fn main() -> ! {
     rtc0.enable_tick_interrupt();
     rtc0.start();
 
+    let mut content = Vec::<[u8; 5]>::new();
+    content.push([1, 1, 1, 1, 1]);
+    content.push([0, 0, 0, 0, 0]);
+
     cortex_m::interrupt::free(|cs| {
         *RTC.borrow(cs).borrow_mut() = Some(rtc0);
+        *CONTENT_TO_DISPLAY.borrow(cs).borrow_mut() = content;
     });
 
     unsafe { NVIC::unmask(Interrupt::RTC0) }
 
     loop {
-        let counter = cortex_m::interrupt::free(|cs| *COUNTER.borrow(cs).borrow().deref());
-
-        let frame = if counter > 5 {
-            [
-                [0, 1, 0, 1, 0],
-                [1, 1, 1, 1, 1],
-                [1, 1, 1, 1, 1],
-                [0, 1, 1, 1, 0],
-                [0, 0, 1, 0, 0],
-            ]
-        } else {
-            [
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-            ]
-        };
+        let frame = cortex_m::interrupt::free(|cs| *CURRENT_FRAME.borrow(cs).borrow().deref());
 
         display.display(&mut delay, frame);
     }
@@ -98,14 +110,49 @@ fn RTC0() {
     cortex_m::interrupt::free(|cs| {
         let mut counter = COUNTER.borrow(cs).borrow_mut();
 
-        if *counter > 10 {
-            *counter = 0;
-        } else {
-            *counter += 1;
+        increase_counter(&mut counter);
+
+        if *counter == 0 {
+            scroll_text(cs);
         }
 
+        // TODO: Use unwrap
         if let Some(rtc) = RTC.borrow(cs).borrow_mut().deref_mut() {
             rtc.clear_tick_event();
         }
     });
+}
+
+fn increase_counter(counter: &mut RefMut<u8>) {
+    if **counter > 10 {
+        **counter = 0;
+    } else {
+        **counter += 1;
+    }
+}
+
+fn scroll_text(cs: &CriticalSection) {
+    let content = CONTENT_TO_DISPLAY.borrow(cs).borrow();
+
+    if content.is_empty() {
+        return;
+    }
+
+    let mut current_index = CURRENT_INDEX.borrow(cs).borrow_mut();
+
+    if *current_index == content.len() {
+        *current_index = 0;
+    } else {
+        *current_index += 1;
+    }
+
+    let mut current_frame = CURRENT_FRAME.borrow(cs).borrow_mut();
+
+    *current_frame = [
+        current_frame[1],
+        current_frame[2],
+        current_frame[3],
+        current_frame[4],
+        content[*current_index],
+    ]
 }
