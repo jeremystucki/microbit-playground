@@ -1,33 +1,21 @@
 #![no_std]
 #![no_main]
-#![feature(alloc_error_handler)]
 
-extern crate alloc;
 extern crate nrf51_hal;
 
 mod display;
 
-use alloc::vec::Vec;
-use alloc_cortex_m::CortexMHeap;
 use bare_metal::{CriticalSection, Mutex};
-use core::alloc::Layout;
-use core::cell::{RefCell, RefMut};
+use core::cell::RefCell;
 use core::ops::{Deref, DerefMut};
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use display::Display;
+use heapless::Vec;
 use nrf51_hal::delay::Delay;
 use nrf51_hal::lo_res_timer::{LoResTimer, FREQ_16HZ};
 use nrf51_hal::nrf51::*;
 use nrf51_hal::prelude::*;
-
-#[global_allocator]
-static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
-
-#[alloc_error_handler]
-fn on_oom(_layout: Layout) -> ! {
-    loop {}
-}
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -45,7 +33,9 @@ static ZERO_FRAME: [[u8; 5]; 5] = [
 static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
 static COUNTER: Mutex<RefCell<u8>> = Mutex::new(RefCell::new(0));
 
-static CONTENT_TO_DISPLAY: Mutex<RefCell<Vec<[u8; 5]>>> = Mutex::new(RefCell::new(Vec::new()));
+static CONTENT_TO_DISPLAY: Mutex<RefCell<FixedVec<[u8; 5]>>> = Mutex::new(RefCell::new(
+    FixedVec::new(&mut alloc_stack!([[u8; 5]; 10])),
+));
 static CURRENT_INDEX: Mutex<RefCell<usize>> = Mutex::new(RefCell::new(0));
 static CURRENT_FRAME: Mutex<RefCell<[[u8; 5]; 5]>> = Mutex::new(RefCell::new(ZERO_FRAME));
 
@@ -87,13 +77,12 @@ fn main() -> ! {
     rtc0.enable_tick_interrupt();
     rtc0.start();
 
-    let mut content = Vec::<[u8; 5]>::new();
-    content.push([1, 1, 1, 1, 1]);
-    content.push([0, 0, 0, 0, 0]);
-
     cortex_m::interrupt::free(|cs| {
         *RTC.borrow(cs).borrow_mut() = Some(rtc0);
-        *CONTENT_TO_DISPLAY.borrow(cs).borrow_mut() = content;
+
+        let mut content = *CONTENT_TO_DISPLAY.borrow(cs).borrow_mut();
+        content.push([1, 1, 1, 1, 1]);
+        content.push([0, 0, 0, 0, 0]);
     });
 
     unsafe { NVIC::unmask(Interrupt::RTC0) }
@@ -110,7 +99,7 @@ fn RTC0() {
     cortex_m::interrupt::free(|cs| {
         let mut counter = COUNTER.borrow(cs).borrow_mut();
 
-        increase_counter(&mut counter);
+        increase_counter(counter.deref_mut());
 
         if *counter == 0 {
             scroll_text(cs);
@@ -123,11 +112,11 @@ fn RTC0() {
     });
 }
 
-fn increase_counter(counter: &mut RefMut<u8>) {
-    if **counter > 10 {
-        **counter = 0;
+fn increase_counter(counter: &mut u8) {
+    if *counter > 10 {
+        *counter = 0;
     } else {
-        **counter += 1;
+        *counter += 1;
     }
 }
 

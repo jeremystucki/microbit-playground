@@ -9,15 +9,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "alloc-cortex-m"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "cortex-m 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "linked_list_allocator 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "as-slice"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -36,19 +27,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "byteorder"
+version = "1.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "cast"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "rustc_version 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "cortex-m"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "volatile-register 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -115,18 +103,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "linked_list_allocator"
-version = "0.6.6"
+name = "hash32"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "byteorder 1.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "heapless"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "as-slice 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "generic-array 0.13.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hash32 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "microbit-playground"
 version = "0.1.0"
 dependencies = [
- "alloc-cortex-m 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "bare-metal 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "heapless 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "nrf51-hal 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -239,11 +240,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "volatile-register"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "volatile-register"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
@@ -252,11 +248,10 @@ dependencies = [
 
 [metadata]
 "checksum aligned 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "eb1ce8b3382016136ab1d31a1b5ce807144f8b7eb2d5f16b2108f0f07edceb94"
-"checksum alloc-cortex-m 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6d5f7d01bc93ce089de636f946f7f1fdc5e5d751732367e019c9755440e7aef4"
 "checksum as-slice 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "be6b7e95ac49d753f19cab5a825dea99a1149a04e4e3230b33ae16e120954c04"
 "checksum bare-metal 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "5deb64efa5bd81e31fcd1938615a6d98c82eafcbcd787162b6f63b91d6bac5b3"
+"checksum byteorder 1.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 "checksum cast 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4b9434b9a5aa1450faa3f9cb14ea0e8c53bb5d2b3c1bfd1ab4fc03e9f33fbfb0"
-"checksum cortex-m 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "3df5de9a9829f2ccb7defa8945fa020c6614cd2f6ba9b5f33db9241dcc01985e"
 "checksum cortex-m 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "2954942fbbdd49996704e6f048ce57567c3e1a4e2dc59b41ae9fde06a01fc763"
 "checksum cortex-m-rt 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)" = "00d518da72bba39496024b62607c1d8e37bcece44b2536664f1132a73a499a28"
 "checksum cortex-m-rt-macros 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "4717562afbba06e760d34451919f5c3bf3ac15c7bb897e8b04862a7428378647"
@@ -264,7 +259,8 @@ dependencies = [
 "checksum fpa 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f074479d683e5a8fd0bf1251d0a5d91b0d9178b867b44962191ed0eaaf8d4009"
 "checksum generic-array 0.12.3 (registry+https://github.com/rust-lang/crates.io-index)" = "c68f0274ae0e023facc3c97b2e00f076be70e254bc851d972503b328db79b2ec"
 "checksum generic-array 0.13.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0ed1e761351b56f54eb9dcd0cfaca9fd0daecf93918e1cfc01c8a3d26ee7adcd"
-"checksum linked_list_allocator 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)" = "47de1a43fad0250ee197e9e124e5b5deab3d7b39d4428ae8a6d741ceb340c362"
+"checksum hash32 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d4041af86e63ac4298ce40e5cca669066e75b6f1aa3390fe2561ffa5e1d9f4cc"
+"checksum heapless 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "10b591a0032f114b7a77d4fbfab452660c553055515b7d7ece355db080d19087"
 "checksum nb 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "b1411551beb3c11dedfb0a90a0fa256b47d28b9ec2cdff34c25a2fa59e45dbdc"
 "checksum nrf51 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d6ea063e3cdbd27348553474aa74e995b595959f8eb63e3fe67fe52ba3a21337"
 "checksum nrf51-hal 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f2367386170f11cc7315f689f79ded3481ed793b1e0382c5913f72374d59edf0"
@@ -280,5 +276,4 @@ dependencies = [
 "checksum unicode-xid 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 "checksum vcell 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "876e32dcadfe563a4289e994f7cb391197f362b6315dc45e8ba4aa6f564a4b3c"
 "checksum void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
-"checksum volatile-register 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "a470889aa8f2d3ad893bd43cd90c824e63e8ac0ee5fe64c5d81a932d184fd549"
 "checksum volatile-register 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0d67cb4616d99b940db1d6bd28844ff97108b498a6ca850e5b6191a532063286"
