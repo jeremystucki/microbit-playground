@@ -34,7 +34,8 @@ static ZERO_FRAME: [[u8; 5]; 5] = [
 static RTC: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new(None));
 static COUNTER: Mutex<RefCell<u8>> = Mutex::new(RefCell::new(0));
 
-static CONTENT_TO_DISPLAY: Mutex<RefCell<Vec<[u8; 5], U10>>> = Mutex::new(RefCell::new(Vec::new()));
+static CONTENT_TO_DISPLAY: Mutex<RefCell<Vec<[u8; 5], U10>>> =
+    Mutex::new(RefCell::new(Vec(heapless::i::Vec::new())));
 static CURRENT_INDEX: Mutex<RefCell<usize>> = Mutex::new(RefCell::new(0));
 static CURRENT_FRAME: Mutex<RefCell<[[u8; 5]; 5]>> = Mutex::new(RefCell::new(ZERO_FRAME));
 
@@ -79,9 +80,9 @@ fn main() -> ! {
     cortex_m::interrupt::free(|cs| {
         *RTC.borrow(cs).borrow_mut() = Some(rtc0);
 
-        let mut content = *CONTENT_TO_DISPLAY.borrow(cs).borrow_mut();
-        content.push([1, 1, 1, 1, 1]);
-        content.push([0, 0, 0, 0, 0]);
+        let mut content = CONTENT_TO_DISPLAY.borrow(cs).borrow_mut();
+        content.push([1, 1, 1, 1, 1]).unwrap();
+        content.push([0, 0, 0, 0, 0]).unwrap();
     });
 
     unsafe { NVIC::unmask(Interrupt::RTC0) }
@@ -128,7 +129,7 @@ fn scroll_text(cs: &CriticalSection) {
 
     let mut current_index = CURRENT_INDEX.borrow(cs).borrow_mut();
 
-    if *current_index == content.len() {
+    if *current_index == content.len() - 1 {
         *current_index = 0;
     } else {
         *current_index += 1;
