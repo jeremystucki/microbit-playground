@@ -2,6 +2,8 @@ use nrf51_hal::delay::Delay;
 use nrf51_hal::gpio::{gpio::*, Output, PushPull};
 use nrf51_hal::prelude::*;
 
+pub mod characters;
+
 type LED = PIN<Output<PushPull>>;
 
 pub struct Display {
@@ -72,7 +74,7 @@ fn map_frame(frame: [[u8; 5]; 5]) -> [[u8; 3]; 9] {
     for row in 0..5 {
         for column in 0..5 {
             let position = map_led_position(row, column);
-            internal_frame[position.0][position.1] = frame[row][column];
+            internal_frame[position.0][position.1] = frame[column][row];
         }
     }
 
