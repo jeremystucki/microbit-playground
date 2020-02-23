@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "microbit-playground",
-    "simple-display"
+    "simple-display",
+    "scrolling-display"
 ]

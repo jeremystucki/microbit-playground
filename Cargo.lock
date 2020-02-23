@@ -127,6 +127,17 @@ dependencies = [
  "bare-metal 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "microbit-scrolling-display 0.1.0",
+ "nrf51-hal 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "microbit-scrolling-display"
+version = "0.1.0"
+dependencies = [
+ "bare-metal 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cortex-m 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cortex-m-rt 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "microbit-simple-display 0.1.0",
  "nrf51-hal 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
