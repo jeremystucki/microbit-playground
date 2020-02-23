@@ -48,13 +48,13 @@ impl Display {
         for (column_index, column_pin) in self.columns.iter_mut().enumerate() {
             column_pin.set_high().unwrap();
 
-            for (row_index, row_pin) in self.rows.iter_mut().enumerate() {
-                let value = frame[row_index][column_index];
-
-                if value != 0 {
-                    row_pin.set_low().unwrap();
-                }
-            }
+            self.rows
+                .iter_mut()
+                .enumerate()
+                .filter(|(row_index, _)| frame[*row_index][column_index] != 0)
+                .map(|(_, row_pin)| row_pin)
+                .map(LED::set_low)
+                .for_each(Result::unwrap);
 
             delay.delay_ms(5_u8);
 
