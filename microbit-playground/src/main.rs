@@ -3,17 +3,17 @@
 
 extern crate nrf51_hal;
 
-mod display;
+mod characters;
 
 use bare_metal::{CriticalSection, Mutex};
+use characters::*;
 use core::cell::RefCell;
 use core::ops::{Deref, DerefMut};
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
-use display::characters::*;
-use display::Display;
 use heapless::consts::U32;
 use heapless::Vec;
+use microbit_simple_display::Display;
 use nrf51_hal::delay::Delay;
 use nrf51_hal::lo_res_timer::{LoResTimer, FREQ_8HZ};
 use nrf51_hal::nrf51::*;
@@ -38,7 +38,7 @@ static RTC_0: Mutex<RefCell<Option<LoResTimer<RTC0>>>> = Mutex::new(RefCell::new
 static RTC_1: Mutex<RefCell<Option<LoResTimer<RTC1>>>> = Mutex::new(RefCell::new(None));
 
 static RTC_1_COUNTER: Mutex<RefCell<u16>> = Mutex::new(RefCell::new(0));
-static COUNTDOWN_HOURS: Mutex<RefCell<u16>> = Mutex::new(RefCell::new(674));
+static COUNTDOWN_HOURS: Mutex<RefCell<u16>> = Mutex::new(RefCell::new(650));
 
 static IMAGE_BUFFER: Mutex<RefCell<ImageBuffer>> =
     Mutex::new(RefCell::new(Vec(heapless::i::Vec::new())));

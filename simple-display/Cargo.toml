@@ -1,0 +1,8 @@
+[package]
+name = "microbit-simple-display"
+version = "0.1.0"
+authors = ["Jeremy Stucki <dev@jeremystucki.ch>"]
+edition = "2018"
+
+[dependencies]
+nrf51-hal = "0.7"

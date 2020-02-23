@@ -1,8 +1,8 @@
+#![no_std]
+
 use nrf51_hal::delay::Delay;
 use nrf51_hal::gpio::{gpio::*, Output, PushPull};
 use nrf51_hal::prelude::*;
-
-pub mod characters;
 
 type LED = PIN<Output<PushPull>>;
 
